@@ -47,6 +47,7 @@
             this.saveAsBtn = new System.Windows.Forms.ToolStripButton();
             this.autoscrollBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
+            this.saveBinaryBtn = new System.Windows.Forms.ToolStripButton();
             this.sendTxb = new System.Windows.Forms.TextBox();
             this.sendToolStrip = new System.Windows.Forms.ToolStrip();
             this.makeRandomDataBtn = new System.Windows.Forms.ToolStripDropDownButton();
@@ -202,7 +203,8 @@
             this.copyToClipboardBtn,
             this.saveAsBtn,
             this.autoscrollBtn,
-            this.toolStripSeparator6});
+            this.toolStripSeparator6,
+            this.saveBinaryBtn});
             this.historyTxbToolStrip.Location = new System.Drawing.Point(0, 0);
             this.historyTxbToolStrip.Name = "historyTxbToolStrip";
             this.historyTxbToolStrip.Size = new System.Drawing.Size(778, 47);
@@ -265,6 +267,18 @@
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
             this.toolStripSeparator6.Size = new System.Drawing.Size(6, 47);
+            // 
+            // saveBinaryBtn
+            // 
+            this.saveBinaryBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.saveBinaryBtn.Font = new System.Drawing.Font("Consolas", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.saveBinaryBtn.Image = ((System.Drawing.Image)(resources.GetObject("saveBinaryBtn.Image")));
+            this.saveBinaryBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.saveBinaryBtn.Name = "saveBinaryBtn";
+            this.saveBinaryBtn.Size = new System.Drawing.Size(49, 42);
+            this.saveBinaryBtn.Text = "01";
+            this.saveBinaryBtn.ToolTipText = "Save as binary";
+            this.saveBinaryBtn.Click += new System.EventHandler(this.saveBinaryBtn_Click);
             // 
             // sendTxb
             // 
@@ -442,5 +456,6 @@
         private System.Windows.Forms.ToolStripButton runAnotherInstance;
         private System.Windows.Forms.ToolStripDropDownButton miscBtn;
         private System.Windows.Forms.ToolStripMenuItem addNMEA0183ChecksumBtn;
+        private System.Windows.Forms.ToolStripButton saveBinaryBtn;
     }
 }

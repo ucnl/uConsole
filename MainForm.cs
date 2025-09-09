@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
@@ -17,7 +18,6 @@ namespace uConsole
 
         string instanceID = "1";
         int childID = 1;
-
 
         string PortName
         {
@@ -38,6 +38,10 @@ namespace uConsole
         bool IsPortInitialized { get => (port != null) && (port.IsOpen); }
 
         bool isPingPongMode = false;
+
+
+        bool isRecording = false;
+        FileStream sw;
 
         #endregion
 
@@ -89,6 +93,28 @@ namespace uConsole
 
             this.Text = vString;
             textHistoryTxb_TextChanged(textHistoryTxb, null);
+
+            this.FormClosing += (o, e) =>
+            {
+                if (isRecording)
+                {
+                    isRecording = false;
+                    try
+                    {
+                        sw.Flush();
+                        sw.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        ProcessException(ex, true);
+                    }
+                }
+
+                if (port.IsOpen)
+                {
+                    DeInitPort();
+                }
+            };
         }        
 
         #endregion
@@ -271,7 +297,10 @@ namespace uConsole
 
             port.RawDataReceived += (o, e) =>
             {
-                OnIncoming(e.Data);                
+                OnIncoming(e.Data);
+
+                if (isRecording)
+                    sw.Write(e.Data, 0, e.Data.Length);
             };
 
             try
@@ -499,6 +528,65 @@ namespace uConsole
             }
         }
 
+        private void saveBinaryBtn_Click(object sender, EventArgs e)
+        {
+            if (isRecording)
+            {
+                isRecording = false;
+                saveBinaryBtn.Checked = false;
+
+                bool isOk = false;
+                long bytesWritten = 0;
+                string fName = string.Empty;
+
+                if (sw != null)
+                {
+                    try
+                    {
+                        bytesWritten = sw.Length;
+                        fName = sw.Name;
+                        sw.Flush();
+                        sw.Close();
+                        isOk = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        ProcessException(ex, true);
+                    }
+                }
+
+                if (isOk)
+                    MessageBox.Show($"{bytesWritten} bytes written to {fName}", "Information", MessageBoxButtons.OK);
+
+            }
+            else
+            {
+                using (SaveFileDialog sDialog = new SaveFileDialog())
+                {
+                    sDialog.Title = "Select a name for a file to save data...";
+                    sDialog.Filter = "any type (*.*)|*.*|Binary files (*.bin)|*.bin|Data files (*.dat)|*.dat";
+                    sDialog.FilterIndex = 1;
+                    sDialog.DefaultExt = "bin";
+                    sDialog.FileName = $"data_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
+
+                    if (sDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        try
+                        {
+                            sw = new FileStream(sDialog.FileName, FileMode.CreateNew, FileAccess.Write);
+                            isRecording = true;
+                            saveBinaryBtn.Checked = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            ProcessException(ex, true);
+                        }
+                    }
+
+                }
+            }
+        }
+           
         #endregion
     }
 }
