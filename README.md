@@ -7,7 +7,7 @@ Simple serial port terminal utility.
 | Platform | Directory | Description |
 |----------|-----------|-------------|
 | Windows (WinForms) | [`winforms/`](winforms/) | Original C# .NET desktop application |
-| Web (Web Serial API) | [`web/`](web/) | Browser-based terminal, no installation required |
+| Web (Web Serial API) | [`docs/`](docs/) | Browser-based terminal, no installation required |
 
 ## License
 
