@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>uConsole</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>⚡ uConsole</h1>
+            <div class="header-controls">
+                <select id="langSelector" class="lang-select">
+                    <option value="en">English</option>
+                    <option value="ru">Русский</option>
+                </select>
+                <span id="connectionStatus" class="status-badge disconnected" data-i18n="status_disconnected">IDLE</span>
+                <a href="#" id="newInstanceLink" class="footer-link" data-i18n="new_instance" title="Open another instance">➕</a>
+            </div>
+        </header>
+
+        <main>
+            <!-- Connection Panel -->
+            <section class="panel connection-panel">
+                <h2 data-i18n="connection_title">Connection</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label for="portSelect" data-i18n="port">Port</label>
+                        <select id="portSelect" class="form-control">
+                            <option value="" data-i18n="no_ports">No ports found</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="baudrateSelect" data-i18n="baudrate">Baudrate</label>
+                        <select id="baudrateSelect" class="form-control">
+                            <option value="4800">4800</option>
+                            <option value="9600" selected>9600</option>
+                            <option value="14400">14400</option>
+                            <option value="19200">19200</option>
+                            <option value="38400">38400</option>
+                            <option value="57600">57600</option>
+                            <option value="115200">115200</option>
+                            <option value="230400">230400</option>
+                            <option value="460800">460800</option>
+                            <option value="921600">921600</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 0; display: flex; align-items: flex-end; gap: 8px;">
+                        <button type="button" id="btnRefreshPorts" class="btn btn-secondary" data-i18n="refresh" title="Refresh ports (Ctrl+R)">🔄</button>
+                        <button type="button" id="btnConnect" class="btn btn-primary" data-i18n="connect">Connect</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Display Mode & Controls -->
+            <section class="panel display-panel">
+                <h2 data-i18n="history_title">History</h2>
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <span class="toolbar-label" data-i18n="display_mode">Display:</span>
+                        <label class="radio-label">
+                            <input type="radio" name="displayMode" value="text" checked>
+                            <span data-i18n="mode_text">Text</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="displayMode" value="hex">
+                            <span data-i18n="mode_hex">HEX</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="displayMode" value="raw">
+                            <span data-i18n="mode_raw">Raw</span>
+                        </label>
+                    </div>
+                    <div class="toolbar-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoscrollCb" checked>
+                            <span data-i18n="autoscroll">Autoscroll</span>
+                        </label>
+                    </div>
+                    <div class="toolbar-group">
+                        <button type="button" id="btnCopy" class="btn btn-small btn-secondary" data-i18n="copy" title="Copy to clipboard (Ctrl+C)">📋 Copy</button>
+                        <button type="button" id="btnClear" class="btn btn-small btn-secondary" data-i18n="clear" title="Clear history (Ctrl+X)">🗑 Clear</button>
+                        <button type="button" id="btnSaveText" class="btn btn-small btn-secondary" data-i18n="save_text" title="Save history as text (Ctrl+S)">💾 Save</button>
+                    </div>
+                </div>
+                <div id="historyContainer" class="history-container">
+                    <div class="log-entry info">uConsole ready...</div>
+                </div>
+            </section>
+
+            <!-- Send Panel -->
+            <section class="panel send-panel">
+                <h2 data-i18n="send_title">Send</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="sendInput" data-i18n="data_to_send">Data to send</label>
+                        <input type="text" id="sendInput" class="form-control mono" placeholder="Type here..." data-i18n-placeholder="type_here" autocomplete="off">
+                    </div>
+                    <div class="form-group" style="flex: 0; display: flex; align-items: flex-end; gap: 8px;">
+                        <button type="button" id="btnSend" class="btn btn-primary" data-i18n="send" title="Send (Enter)">▶ Send</button>
+                    </div>
+                </div>
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <button type="button" id="btnCR" class="btn btn-small btn-secondary" data-i18n="cr" title="Send CR (\\r)">↵ CR</button>
+                        <button type="button" id="btnLF" class="btn btn-small btn-secondary" data-i18n="lf" title="Send LF (\\n)">↓ LF</button>
+                        <button type="button" id="btnCRLF" class="btn btn-small btn-secondary" data-i18n="crlf" title="Send CR+LF (Ctrl+Enter)">↵↓ CRLF</button>
+                        <button type="button" id="btnNMEAChecksum" class="btn btn-small btn-secondary" data-i18n="nmea_checksum" title="Add NMEA checksum (Ctrl+N)">🔐 NMEA CS</button>
+                        <button type="button" id="btnRecordBinary" class="btn btn-small btn-secondary" data-i18n="record_binary" title="Record incoming binary">⏺ Record</button>
+                    </div>
+                    <div class="toolbar-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="pingPongCb">
+                            <span data-i18n="ping_pong">Ping-Pong</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top: 8px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label data-i18n="generate_random">Generate random HEX</label>
+                        <div class="button-group" style="margin-top: 0;">
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="2">2 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="4">4 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="8">8 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="16">16 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="32">32 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="64">64 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="128">128 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="256">256 bytes</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label data-i18n="generate_and_send">Generate &amp; Send</label>
+                        <div class="button-group" style="margin-top: 0;">
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="2">2 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="4">4 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="8">8 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="16">16 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="32">32 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="64">64 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="128">128 bytes</button>
+                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="256">256 bytes</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="https://github.com/ucnl/uConsole/" target="_blank" rel="noopener" class="footer-link">⭐ GitHub</a>
+                    <a href="https://docs.unavlab.com/" target="_blank" rel="noopener" class="footer-link">📖 Docs</a>
+                    <a href="#" id="footerNewInstance" class="footer-link" data-i18n="new_instance">🪟 New instance</a>
+                </div>
+                <div class="footer-info">
+                    <span class="footer-copy">&copy; 2026 <span data-i18n="org_name">(C) UC&NL</span></span>
+                    <span class="footer-desc" data-i18n="footer_desc">Open Source Serial Terminal</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Serial Core -->
+    <script src="serial-core.js"></script>
+    <!-- i18n -->
+    <script src="i18n.js"></script>
+    <!-- App -->
+    <script src="app.js"></script>
+</body>
+</html>
