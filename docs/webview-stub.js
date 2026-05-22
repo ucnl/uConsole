@@ -7,53 +7,44 @@
     
     console.log('[Stub] Creating virtual serial port');
     
-    var _port = null;
-    
-    function createPort() {
-        if (_port) return _port;
-        
-        _port = {
-            readable: new ReadableStream({
-                start: function(controller) {
-                    window._stubController = controller;
-                    console.log('[Stub] ReadableStream started');
-                }
-            }),
-            writable: new WritableStream({
-                write: function(chunk) {
-                    var text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
-                    console.log('[Stub] Write:', text);
-                    if (window._uartWriteCallback) {
-                        window._uartWriteCallback(text);
-                    }
-                }
-            }),
-            open: function(options) {
-                console.log('[Stub] Port opened with', options);
-                return Promise.resolve();
-            },
-            close: function() {
-                console.log('[Stub] Port closed');
-                return Promise.resolve();
-            },
-            getInfo: function() {
-                return { usbVendorId: 0x0403, usbProductId: 0x6001 };
+    var _port = {
+        readable: new ReadableStream({
+            start: function(controller) {
+                window._stubController = controller;
+                console.log('[Stub] ReadableStream started');
             }
-        };
-        
-        return _port;
-    }
+        }),
+        writable: new WritableStream({
+            write: function(chunk) {
+                var text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
+                console.log('[Stub] Write:', text);
+                if (window._uartWriteCallback) {
+                    window._uartWriteCallback(text);
+                }
+            }
+        }),
+        open: function(options) {
+            console.log('[Stub] Port opened with', options);
+            return Promise.resolve();
+        },
+        close: function() {
+            console.log('[Stub] Port closed');
+            return Promise.resolve();
+        },
+        getInfo: function() {
+            return { usbVendorId: 0x0403, usbProductId: 0x6001 };
+        }
+    };
     
     navigator.serial = {
         requestPort: function(filters) {
             console.log('[Stub] requestPort called', filters);
-            return Promise.resolve(createPort());
+            return Promise.resolve(_port);
         },
         
         getPorts: function() {
-            console.log('[Stub] getPorts called');
-            // Не создаём порт здесь — только если уже был создан через requestPort
-            return Promise.resolve(_port ? [_port] : []);
+            console.log('[Stub] getPorts called, returning 1 port');
+            return Promise.resolve([_port]);  // ВСЕГДА возвращаем порт
         },
         
         addEventListener: function(event, callback) {
@@ -65,5 +56,5 @@
         }
     };
     
-    console.log('[Stub] Virtual serial port ready (lazy)');
+    console.log('[Stub] Virtual serial port ready (pre-created)');
 })();
