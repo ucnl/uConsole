@@ -32,7 +32,31 @@
             return Promise.resolve();
         },
         getInfo: function() {
-            return { usbVendorId: 0x0403, usbProductId: 0x6001 };
+            console.log('[Stub] getInfo called');
+            return { 
+                usbVendorId: 0x0403, 
+                usbProductId: 0x6001 
+            };
+        },
+        // Добавляем недостающие свойства, которые могут вызываться
+        forget: function() {
+            console.log('[Stub] forget called');
+            return Promise.resolve();
+        },
+        setSignals: function(signals) {
+            console.log('[Stub] setSignals called', signals);
+            return Promise.resolve();
+        },
+        getSignals: function() {
+            console.log('[Stub] getSignals called');
+            return Promise.resolve({
+                dataTerminalReady: true,
+                requestToSend: true,
+                dataCarrierDetect: true,
+                dataSetReady: true,
+                ringIndicator: false,
+                clearToSend: false
+            });
         }
     };
     
@@ -44,7 +68,7 @@
         
         getPorts: function() {
             console.log('[Stub] getPorts called, returning 1 port');
-            return Promise.resolve([_port]);  // ВСЕГДА возвращаем порт
+            return Promise.resolve([_port]);
         },
         
         addEventListener: function(event, callback) {
