@@ -205,12 +205,12 @@ class UConsole {
             this._updateUIState(true);
 
             let portName = 'Serial Port';
-            if (this.serial.port) {
-                const info = this.serial.port.getInfo();
-                portName = info.usbProductName || info.usbVendorId ? 
-                    `USB (${info.usbVendorId?.toString(16) || '?'}:${info.usbProductId?.toString(16) || '?'})` : 
-                    'Serial Port';
-            }
+			try {
+				if (this.serial.port && typeof this.serial.port.getInfo === 'function') {
+					const info = this.serial.port.getInfo();
+					portName = `USB (${info.usbVendorId?.toString(16) || '?'}:${info.usbProductId?.toString(16) || '?'})`;
+				}
+			} catch(e) {}
             this.addSystemMessage(`${I18n.translate('log_connected')} ${portName} @ ${baudrate}`);
         } catch (err) {
             this.isConnected = false;
@@ -235,10 +235,15 @@ class UConsole {
 
         if (ports.length > 0) {
             ports.forEach(port => {
-                const info = port.getInfo();
-                const option = document.createElement('option');
-                const name = info.usbProductName || 
-                    `USB (${info.usbVendorId?.toString(16) || '?'}:${info.usbProductId?.toString(16) || '?'})`;
+                let name = 'Serial Port';
+				try {
+					if (typeof port.getInfo === 'function') {
+						const info = port.getInfo();
+						name = info.usbProductName || 
+							`USB (${info.usbVendorId?.toString(16) || '?'}:${info.usbProductId?.toString(16) || '?'})`;
+					}
+				} catch(e) {}
+				const option = document.createElement('option');
                 option.value = name;
                 option.textContent = name;
                 portSelect.appendChild(option);
