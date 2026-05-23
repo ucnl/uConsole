@@ -5,8 +5,6 @@
         return;
     }
     
-    console.log('[Stub] Creating virtual serial port');
-    
     var _port = {
         _readable: null,
         _writable: null,
@@ -43,8 +41,6 @@
         },
         
         close: function() {
-            this._readable = null;
-            this._writable = null;
             return Promise.resolve();
         },
         
