@@ -5,7 +5,6 @@ class SerialCore {
     constructor() {
         this.port = null;
         this.reader = null;
-        this.writer = null;
         this.isOpen = false;
 
         // Callbacks
@@ -33,7 +32,6 @@ class SerialCore {
             });
 
             this.isOpen = true;
-            this.writer = this.port.writable.getWriter();
 
             // Start reading
             this.reader = this.port.readable.getReader();
@@ -52,8 +50,10 @@ class SerialCore {
      * @param {Uint8Array} data
      */
     async send(data) {
-        if (!this.writer) throw new Error('Port not open');
-        await this.writer.write(data);
+        if (!this.isOpen || !this.port) throw new Error('Port not open');
+        const writer = this.port.writable.getWriter();
+        await writer.write(data);
+        writer.releaseLock();
     }
 
     /**
@@ -89,11 +89,6 @@ class SerialCore {
             try { this.reader.cancel(); } catch (e) { /* ignore */ }
             try { this.reader.releaseLock(); } catch (e) { /* ignore */ }
             this.reader = null;
-        }
-
-        if (this.writer) {
-            try { this.writer.releaseLock(); } catch (e) { /* ignore */ }
-            this.writer = null;
         }
 
         if (this.port) {
