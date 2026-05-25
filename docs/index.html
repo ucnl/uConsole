@@ -55,42 +55,6 @@
                 </div>
             </section>
 
-            <!-- Display Mode & Controls -->
-            <section class="panel display-panel">
-                <h2 data-i18n="history_title">History</h2>
-                <div class="toolbar">
-                    <div class="toolbar-group">
-                        <span class="toolbar-label" data-i18n="display_mode">Display:</span>
-                        <label class="radio-label">
-                            <input type="radio" name="displayMode" value="text" checked>
-                            <span data-i18n="mode_text">Text</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="displayMode" value="hex">
-                            <span data-i18n="mode_hex">HEX</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="displayMode" value="raw">
-                            <span data-i18n="mode_raw">Raw</span>
-                        </label>
-                    </div>
-                    <div class="toolbar-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="autoscrollCb" checked>
-                            <span data-i18n="autoscroll">Autoscroll</span>
-                        </label>
-                    </div>
-                    <div class="toolbar-group">
-                        <button type="button" id="btnCopy" class="btn btn-small btn-secondary" data-i18n="copy" title="Copy to clipboard (Ctrl+C)">📋 Copy</button>
-                        <button type="button" id="btnClear" class="btn btn-small btn-secondary" data-i18n="clear" title="Clear history (Ctrl+X)">🗑 Clear</button>
-                        <button type="button" id="btnSaveText" class="btn btn-small btn-secondary" data-i18n="save_text" title="Save history as text (Ctrl+S)">💾 Save</button>
-                    </div>
-                </div>
-                <div id="historyContainer" class="history-container">
-                    <div class="log-entry info">uConsole ready...</div>
-                </div>
-            </section>
-
             <!-- Send Panel -->
             <section class="panel send-panel">
                 <h2 data-i18n="send_title">Send</h2>
@@ -156,6 +120,42 @@
 				</div>
             </section>
         </main>
+		
+		<!-- Display Mode & Controls -->
+            <section class="panel display-panel">
+                <h2 data-i18n="history_title">History</h2>
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <span class="toolbar-label" data-i18n="display_mode">Display:</span>
+                        <label class="radio-label">
+                            <input type="radio" name="displayMode" value="text" checked>
+                            <span data-i18n="mode_text">Text</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="displayMode" value="hex">
+                            <span data-i18n="mode_hex">HEX</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="displayMode" value="raw">
+                            <span data-i18n="mode_raw">Raw</span>
+                        </label>
+                    </div>
+                    <div class="toolbar-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoscrollCb" checked>
+                            <span data-i18n="autoscroll">Autoscroll</span>
+                        </label>
+                    </div>
+                    <div class="toolbar-group">
+                        <button type="button" id="btnCopy" class="btn btn-small btn-secondary" data-i18n="copy" title="Copy to clipboard (Ctrl+C)">📋 Copy</button>
+                        <button type="button" id="btnClear" class="btn btn-small btn-secondary" data-i18n="clear" title="Clear history (Ctrl+X)">🗑 Clear</button>
+                        <button type="button" id="btnSaveText" class="btn btn-small btn-secondary" data-i18n="save_text" title="Save history as text (Ctrl+S)">💾 Save</button>
+                    </div>
+                </div>
+                <div id="historyContainer" class="history-container">
+                    <div class="log-entry info">uConsole ready...</div>
+                </div>
+            </section>
 
         <!-- Footer -->
         <footer class="footer">
