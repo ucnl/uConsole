@@ -147,79 +147,70 @@ class UConsole {
 		});
 
 		// ================= Фикс клавиатуры на мобильных =================
-		const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+		const sendInput = document.getElementById('sendInput');
+		const container = document.querySelector('.container');
+		let originalPadding = container.style.paddingBottom;
+		let isKeyboardVisible = false;
 
-		if (isMobile) {
-			const sendInput = document.getElementById('sendInput');
-			const sendPanel = document.querySelector('.send-panel');
-			const historyContainer = document.getElementById('historyContainer');
-			let originalHistoryHeight = historyContainer.style.maxHeight || '400px';
-			let lastScrollY = 0;
+		// Способ 1: отслеживание изменения размера окна
+		window.addEventListener('resize', () => {
+			const currentHeight = window.innerHeight;
+			const screenHeight = screen.height;
 			
-			// При фокусе на поле ввода
-			sendInput.addEventListener('focus', () => {
-				lastScrollY = window.scrollY;
-				
-				// Уменьшаем историю до минимума
-				historyContainer.style.maxHeight = '120px';
-				historyContainer.style.transition = 'max-height 0.3s ease-out';
-				
-				// Ждём открытия клавиатуры (разные задержки для разных устройств)
-				setTimeout(() => {
-					// Прокручиваем так, чтобы панель отправки была в самом верху видимой области
-					sendPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			// Если высота окна стала меньше 75% от высоты экрана — клавиатура открыта
+			if (currentHeight < screenHeight * 0.75) {
+				if (!isKeyboardVisible && document.activeElement === sendInput) {
+					isKeyboardVisible = true;
 					
-					// Дополнительная подстраховка через requestAnimationFrame
-					requestAnimationFrame(() => {
-						const panelRect = sendPanel.getBoundingClientRect();
-						const windowHeight = window.innerHeight;
-						
-						// Если панель всё ещё ниже видимой области
-						if (panelRect.top > windowHeight * 0.3) {
-							window.scrollBy({
-								top: panelRect.top - 60,
-								behavior: 'smooth'
-							});
-						}
-					});
-				}, 350); // Увеличил задержку для Huawei
-			});
-			
-			// При потере фокуса — возвращаем всё обратно
-			sendInput.addEventListener('blur', () => {
-				setTimeout(() => {
-					historyContainer.style.maxHeight = originalHistoryHeight;
-					historyContainer.style.transition = 'max-height 0.3s ease-out';
-					window.scrollTo({ top: 0, behavior: 'smooth' });
-				}, 500);
-			});
-			
-			// Отслеживаем изменение размера окна (резервный метод)
-			let lastHeight = window.innerHeight;
-			window.addEventListener('resize', () => {
-				const currentHeight = window.innerHeight;
-				const heightDiff = lastHeight - currentHeight;
-				
-				// Если высота уменьшилась более чем на 150px — скорее всего открылась клавиатура
-				if (heightDiff > 150 && document.activeElement === sendInput) {
-					historyContainer.style.maxHeight = '120px';
+					// Увеличиваем отступ снизу чтобы можно было докрутить
+					const keyboardHeight = screenHeight - currentHeight;
+					container.style.paddingBottom = `${keyboardHeight + 20}px`;
 					
-					requestAnimationFrame(() => {
-						sendPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-					});
-				} else if (heightDiff < -100) {
-					// Клавиатура закрылась
+					// Прокручиваем к полю ввода
 					setTimeout(() => {
-						if (document.activeElement !== sendInput) {
-							historyContainer.style.maxHeight = originalHistoryHeight;
-							window.scrollTo({ top: 0, behavior: 'smooth' });
-						}
-					}, 300);
+						sendInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					}, 100);
+				}
+			} else {
+				// Клавиатура скрыта
+				if (isKeyboardVisible) {
+					isKeyboardVisible = false;
+					container.style.paddingBottom = originalPadding;
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				}
+			}
+		});
+
+		// Способ 2: при фокусе на поле ввода
+		sendInput.addEventListener('focus', () => {
+			// Даём время клавиатуре открыться
+			setTimeout(() => {
+				const currentHeight = window.innerHeight;
+				const screenHeight = screen.height;
+				
+				if (currentHeight < screenHeight * 0.75) {
+					isKeyboardVisible = true;
+					const keyboardHeight = screenHeight - currentHeight;
+					container.style.paddingBottom = `${keyboardHeight + 20}px`;
 				}
 				
-				lastHeight = currentHeight;
-			});
-		}
+				// Множественные попытки прокрутки
+				for (let i = 1; i <= 5; i++) {
+					setTimeout(() => {
+						sendInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					}, i * 200);
+				}
+			}, 300);
+		});
+
+		// Способ 3: при потере фокуса — возвращаем обратно
+		sendInput.addEventListener('blur', () => {
+			setTimeout(() => {
+				isKeyboardVisible = false;
+				container.style.paddingBottom = originalPadding;
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			}, 300);
+		});
 
 		// New instance links
 		const newInstanceHandler = (e) => {
