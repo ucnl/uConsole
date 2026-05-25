@@ -246,21 +246,28 @@ select.form-control {
 
 /* ================= Фикс клавиатуры на мобильных ================= */
 html {
-    height: 100%;
-    /* Используем dvh для динамической высоты viewport */
+    height: 100vh;
     height: 100dvh;
 }
 
 body {
-    height: 100%;
+    height: 100vh;
     height: 100dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 
-/* При фокусе на input прокручиваем так, чтобы было видно */
+/* Резервный отступ на случай если JS не сработал */
 #sendInput:focus {
-    scroll-margin-bottom: 50vh; /* Оставляет место для клавиатуры */
+    scroll-margin-bottom: 40vh;
+}
+
+/* На мобильных панель ввода чуть приподнята */
+@media (max-width: 600px) {
+    .send-panel {
+        position: relative;
+        z-index: 10;
+    }
 }
 
 /* Toolbar */

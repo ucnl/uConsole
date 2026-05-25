@@ -38,56 +38,50 @@ class UConsole {
     // ==================== Init Listeners ====================
 
     _initAllListeners() {
-        // Connect / Disconnect
-        document.getElementById('btnConnect').addEventListener('click', () => this._toggleConnection());
-        document.getElementById('btnRefreshPorts').addEventListener('click', () => this._refreshPorts());
+		// Connect / Disconnect
+		document.getElementById('btnConnect').addEventListener('click', () => this._toggleConnection());
+		document.getElementById('btnRefreshPorts').addEventListener('click', () => this._refreshPorts());
 
-        // Send
-        document.getElementById('btnSend').addEventListener('click', () => this._sendFromInput());
-        document.getElementById('sendInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
-                e.preventDefault();
-                this._sendFromInput();
-            }
-            if (e.key === 'Enter' && e.ctrlKey) {
-                e.preventDefault();
-                this._sendCRLF();
-            }
-        });
+		// Send
+		document.getElementById('btnSend').addEventListener('click', () => this._sendFromInput());
+		document.getElementById('sendInput').addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+				e.preventDefault();
+				this._sendFromInput();
+			}
+			if (e.key === 'Enter' && e.ctrlKey) {
+				e.preventDefault();
+				this._sendCRLF();
+			}
+		});
 
-        // CR, LF, CRLF
-        document.getElementById('btnCR').addEventListener('click', () => this._sendControl(0x0D, '<CR>'));
-        document.getElementById('btnLF').addEventListener('click', () => this._sendControl(0x0A, '<LF>'));
-        document.getElementById('btnCRLF').addEventListener('click', () => this._sendCRLF());
+		// CR, LF, CRLF
+		document.getElementById('btnCR').addEventListener('click', () => this._sendControl(0x0D, '<CR>'));
+		document.getElementById('btnLF').addEventListener('click', () => this._sendControl(0x0A, '<LF>'));
+		document.getElementById('btnCRLF').addEventListener('click', () => this._sendCRLF());
 
-        // NMEA Checksum
-        document.getElementById('btnNMEAChecksum').addEventListener('click', () => this._addNMEAChecksum());
+		// NMEA Checksum
+		document.getElementById('btnNMEAChecksum').addEventListener('click', () => this._addNMEAChecksum());
 
-        // Record Binary
-        document.getElementById('btnRecordBinary').addEventListener('click', () => this._toggleRecording());
+		// Record Binary
+		document.getElementById('btnRecordBinary').addEventListener('click', () => this._toggleRecording());
 
-        // Ping-Pong
-        document.getElementById('pingPongCb').addEventListener('change', (e) => {
-            this.isPingPong = e.target.checked;
-        });
+		// Ping-Pong
+		document.getElementById('pingPongCb').addEventListener('change', (e) => {
+			this.isPingPong = e.target.checked;
+		});
 
-        // Display mode handled in _initDisplayModeSwitch
+		// Autoscroll
+		document.getElementById('autoscrollCb').addEventListener('change', () => {
+			if (document.getElementById('autoscrollCb').checked) {
+				this._scrollToBottom();
+			}
+		});
 
-        // Autoscroll
-        document.getElementById('autoscrollCb').addEventListener('change', () => {
-            if (document.getElementById('autoscrollCb').checked) {
-                this._scrollToBottom();
-            }
-        });
-
-        // Copy / Clear / Save
-        document.getElementById('btnCopy').addEventListener('click', () => this._copyHistory());
-        document.getElementById('btnClear').addEventListener('click', () => this._clearHistory());
-        document.getElementById('btnSaveText').addEventListener('click', () => this._saveHistoryText());
-
-
-
-
+		// Copy / Clear / Save
+		document.getElementById('btnCopy').addEventListener('click', () => this._copyHistory());
+		document.getElementById('btnClear').addEventListener('click', () => this._clearHistory());
+		document.getElementById('btnSaveText').addEventListener('click', () => this._saveHistoryText());
 
 		// ================= Dropdown Generate =================
 		const setupDropdown = (toggleId, menuId, isSend) => {
@@ -152,49 +146,81 @@ class UConsole {
 			});
 		});
 
-
-
-
-		// Фикс клавиатуры на мобильных
-		const sendInput = document.getElementById('sendInput');
-		sendInput.addEventListener('focus', () => {
-			setTimeout(() => {
-				sendInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-				// Дополнительно скроллим историю чтобы место освободить
-				const history = document.getElementById('historyContainer');
-				if (history.scrollHeight > history.clientHeight) {
-					history.scrollTop = history.scrollHeight;
+		// ================= Фикс клавиатуры на мобильных =================
+		if (window.visualViewport) {
+			const sendInput = document.getElementById('sendInput');
+			const historyContainer = document.getElementById('historyContainer');
+			const sendPanel = document.querySelector('.send-panel');
+			let originalHistoryHeight = null;
+			
+			const adjustForKeyboard = () => {
+				const viewport = window.visualViewport;
+				const keyboardHeight = window.innerHeight - viewport.height;
+				const inputFocused = document.activeElement === sendInput;
+				
+				if (keyboardHeight > 100 && inputFocused) {
+					// Сохраняем изначальную высоту истории
+					if (!originalHistoryHeight) {
+						originalHistoryHeight = historyContainer.style.maxHeight || '400px';
+					}
+					
+					// Уменьшаем историю, освобождая место
+					const availableHeight = viewport.height - sendPanel.offsetHeight - 120;
+					historyContainer.style.maxHeight = `${Math.max(150, availableHeight)}px`;
+					historyContainer.style.transition = 'max-height 0.2s ease-out';
+					
+					// Прокручиваем к полю ввода
+					requestAnimationFrame(() => {
+						const inputRect = sendInput.getBoundingClientRect();
+						if (inputRect.bottom > viewport.height - 20) {
+							sendInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						}
+					});
+				} else if (!inputFocused && keyboardHeight < 50) {
+					// Клавиатура закрыта — возвращаем как было
+					historyContainer.style.maxHeight = originalHistoryHeight || '';
+					originalHistoryHeight = null;
 				}
-			}, 300); // Задержка под открытие клавиатуры
+			};
+			
+			window.visualViewport.addEventListener('resize', adjustForKeyboard);
+			window.visualViewport.addEventListener('scroll', adjustForKeyboard);
+			
+			// Фокус — сразу адаптируем
+			sendInput.addEventListener('focus', () => {
+				setTimeout(adjustForKeyboard, 250); // Ждём открытия клавиатуры
+			});
+			
+			// Потеря фокуса — возвращаем через задержку
+			sendInput.addEventListener('blur', () => {
+				setTimeout(() => {
+					if (document.activeElement !== sendInput) {
+						historyContainer.style.maxHeight = originalHistoryHeight || '';
+						historyContainer.style.transition = 'max-height 0.3s ease-out';
+						originalHistoryHeight = null;
+						window.scrollTo({ top: 0, behavior: 'smooth' });
+					}
+				}, 500);
+			});
+		}
+
+		// New instance links
+		const newInstanceHandler = (e) => {
+			e.preventDefault();
+			window.open(window.location.href, '_blank');
+		};
+		document.getElementById('newInstanceLink').addEventListener('click', newInstanceHandler);
+		document.getElementById('footerNewInstance').addEventListener('click', newInstanceHandler);
+
+		// Language selector
+		document.getElementById('langSelector').addEventListener('change', (e) => {
+			I18n.setLanguage(e.target.value);
+			this._updateConnectionStatus();
 		});
 
-		// На мобильных при потере фокуса скроллим обратно
-		sendInput.addEventListener('blur', () => {
-			setTimeout(() => {
-				window.scrollTo({ top: 0, behavior: 'smooth' });
-			}, 100);
-		});
-
-
-
-
-        // New instance links
-        const newInstanceHandler = (e) => {
-            e.preventDefault();
-            window.open(window.location.href, '_blank');
-        };
-        document.getElementById('newInstanceLink').addEventListener('click', newInstanceHandler);
-        document.getElementById('footerNewInstance').addEventListener('click', newInstanceHandler);
-
-        // Language selector
-        document.getElementById('langSelector').addEventListener('change', (e) => {
-            I18n.setLanguage(e.target.value);
-            this._updateConnectionStatus();
-        });
-
-        // Refresh ports on first load
-        this._refreshPorts();
-    }
+		// Refresh ports on first load
+		this._refreshPorts();
+	}
 
     _initDisplayModeSwitch() {
         const radios = document.querySelectorAll('input[name="displayMode"]');
