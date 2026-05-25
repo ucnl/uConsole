@@ -119,33 +119,41 @@
                     </div>
                 </div>
                 <div class="form-row" style="margin-top: 8px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label data-i18n="generate_random">Generate random HEX</label>
-                        <div class="button-group" style="margin-top: 0;">
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="2">2 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="4">4 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="8">8 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="16">16 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="32">32 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="64">64 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="128">128 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-btn" data-size="256">256 bytes</button>
-                        </div>
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label data-i18n="generate_and_send">Generate &amp; Send</label>
-                        <div class="button-group" style="margin-top: 0;">
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="2">2 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="4">4 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="8">8 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="16">16 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="32">32 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="64">64 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="128">128 bytes</button>
-                            <button type="button" class="btn btn-small btn-secondary generate-send-btn" data-size="256">256 bytes</button>
-                        </div>
-                    </div>
-                </div>
+					<div class="form-group" style="flex: 1;">
+						<div class="dropdown-generate">
+							<button type="button" class="btn btn-small btn-secondary dropdown-toggle" id="btnGenDropdown">
+								<span class="dropdown-label" data-i18n="generate_random">🎲 Generate HEX...</span>
+							</button>
+							<div class="dropdown-menu" id="dropdownMenuGen">
+								<button type="button" class="dropdown-item generate-btn" data-size="2">2 bytes</button>
+								<button type="button" class="dropdown-item generate-btn" data-size="4">4 bytes</button>
+								<button type="button" class="dropdown-item generate-btn" data-size="8">8 bytes</button>
+								<button type="button" class="dropdown-item generate-btn" data-size="16">16 bytes</button>
+								<button type="button" class="dropdown-item generate-btn" data-size="32">32 bytes</button>
+								<button type="button" class="dropdown-item generate-btn" data-size="64">64 bytes</button>
+								<button type="button" class="dropdown-item generate-btn" data-size="128">128 bytes</button>
+								<button type="button" class="dropdown-item generate-btn" data-size="256">256 bytes</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group" style="flex: 1;">
+						<div class="dropdown-generate">
+							<button type="button" class="btn btn-small btn-secondary dropdown-toggle" id="btnGenSendDropdown">
+								<span class="dropdown-label" data-i18n="generate_and_send">🚀 Generate & Send...</span>
+							</button>
+							<div class="dropdown-menu" id="dropdownMenuGenSend">
+								<button type="button" class="dropdown-item generate-send-btn" data-size="2">2 bytes</button>
+								<button type="button" class="dropdown-item generate-send-btn" data-size="4">4 bytes</button>
+								<button type="button" class="dropdown-item generate-send-btn" data-size="8">8 bytes</button>
+								<button type="button" class="dropdown-item generate-send-btn" data-size="16">16 bytes</button>
+								<button type="button" class="dropdown-item generate-send-btn" data-size="32">32 bytes</button>
+								<button type="button" class="dropdown-item generate-send-btn" data-size="64">64 bytes</button>
+								<button type="button" class="dropdown-item generate-send-btn" data-size="128">128 bytes</button>
+								<button type="button" class="dropdown-item generate-send-btn" data-size="256">256 bytes</button>
+							</div>
+						</div>
+					</div>
+				</div>
             </section>
         </main>
 

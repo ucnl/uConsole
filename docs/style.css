@@ -158,6 +158,111 @@ select.form-control {
     cursor: pointer;
 }
 
+/* ================= Dropdown Generate ================= */
+.dropdown-generate {
+    position: relative;
+    width: 100%;
+}
+
+.dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
+    position: relative;
+}
+
+.dropdown-toggle .dropdown-label {
+    flex: 1;
+    text-align: left;
+}
+
+.dropdown-toggle::after {
+    content: '▾';
+    font-size: 10px;
+    margin-left: 8px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.dropdown-toggle.open::after {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 0 0 var(--radius) var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    margin-top: 2px;
+    overflow: hidden;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 14px;
+    border: none;
+    background: white;
+    color: var(--text-dark);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-bottom: 1px solid var(--border);
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: #e8f0fe;
+    color: var(--accent);
+}
+
+.dropdown-item:active {
+    background: #d2e3fc;
+}
+
+/* На очень маленьких экранах dropdown открывается вверх */
+@media (max-height: 500px) {
+    .dropdown-menu {
+        bottom: 100%;
+        top: auto;
+        border-radius: var(--radius) var(--radius) 0 0;
+        margin-top: 0;
+        margin-bottom: 2px;
+    }
+}
+
+/* ================= Фикс клавиатуры на мобильных ================= */
+html {
+    height: 100%;
+    /* Используем dvh для динамической высоты viewport */
+    height: 100dvh;
+}
+
+body {
+    height: 100%;
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* При фокусе на input прокручиваем так, чтобы было видно */
+#sendInput:focus {
+    scroll-margin-bottom: 50vh; /* Оставляет место для клавиатуры */
+}
+
 /* Toolbar */
 .toolbar {
     display: flex;

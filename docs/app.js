@@ -85,24 +85,98 @@ class UConsole {
         document.getElementById('btnClear').addEventListener('click', () => this._clearHistory());
         document.getElementById('btnSaveText').addEventListener('click', () => this._saveHistoryText());
 
-        // Generate random HEX buttons
-        document.querySelectorAll('.generate-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const size = parseInt(btn.getAttribute('data-size'));
-                document.getElementById('sendInput').value = this._generateRandomHex(size);
-                document.getElementById('sendInput').focus();
-            });
-        });
 
-        // Generate & Send buttons
-        document.querySelectorAll('.generate-send-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const size = parseInt(btn.getAttribute('data-size'));
-                const hex = this._generateRandomHex(size);
-                document.getElementById('sendInput').value = hex;
-                this._sendData(hex);
-            });
-        });
+
+
+
+		// ================= Dropdown Generate =================
+		const setupDropdown = (toggleId, menuId, isSend) => {
+			const toggle = document.getElementById(toggleId);
+			const menu = document.getElementById(menuId);
+			const items = menu.querySelectorAll('.dropdown-item');
+
+			// Открыть/закрыть dropdown
+			toggle.addEventListener('click', (e) => {
+				e.stopPropagation();
+				const isOpen = menu.classList.contains('show');
+				// Закрыть все dropdown-ы
+				document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+				document.querySelectorAll('.dropdown-toggle').forEach(t => t.classList.remove('open'));
+				if (!isOpen) {
+					menu.classList.add('show');
+					toggle.classList.add('open');
+				}
+			});
+
+			// Выбор элемента
+			items.forEach(item => {
+				item.addEventListener('click', (e) => {
+					e.stopPropagation();
+					const size = parseInt(item.getAttribute('data-size'));
+					const hex = this._generateRandomHex(size);
+
+					if (isSend) {
+						// Generate & Send
+						document.getElementById('sendInput').value = hex;
+						this._sendData(hex);
+					} else {
+						// Generate only
+						document.getElementById('sendInput').value = hex;
+						document.getElementById('sendInput').focus();
+					}
+
+					// Обновить текст кнопки
+					toggle.querySelector('.dropdown-label').textContent = `${size} bytes`;
+
+					// Закрыть dropdown
+					menu.classList.remove('show');
+					toggle.classList.remove('open');
+				});
+			});
+		};
+
+		// Инициализация обоих dropdown-ов
+		setupDropdown('btnGenDropdown', 'dropdownMenuGen', false);
+		setupDropdown('btnGenSendDropdown', 'dropdownMenuGenSend', true);
+
+		// Закрытие dropdown при клике вне
+		document.addEventListener('click', () => {
+			document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+			document.querySelectorAll('.dropdown-toggle').forEach(t => t.classList.remove('open'));
+		});
+
+		// Предотвращаем закрытие при клике внутри dropdown
+		document.querySelectorAll('.dropdown-menu').forEach(menu => {
+			menu.addEventListener('click', (e) => {
+				e.stopPropagation();
+			});
+		});
+
+
+
+
+		// Фикс клавиатуры на мобильных
+		const sendInput = document.getElementById('sendInput');
+		sendInput.addEventListener('focus', () => {
+			setTimeout(() => {
+				sendInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				// Дополнительно скроллим историю чтобы место освободить
+				const history = document.getElementById('historyContainer');
+				if (history.scrollHeight > history.clientHeight) {
+					history.scrollTop = history.scrollHeight;
+				}
+			}, 300); // Задержка под открытие клавиатуры
+		});
+
+		// На мобильных при потере фокуса скроллим обратно
+		sendInput.addEventListener('blur', () => {
+			setTimeout(() => {
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+			}, 100);
+		});
+
+
+
 
         // New instance links
         const newInstanceHandler = (e) => {
