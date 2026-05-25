@@ -248,26 +248,28 @@ select.form-control {
 html {
     height: 100vh;
     height: 100dvh;
+    /* Для Huawei и других устройств с виртуальной клавиатурой */
+    height: -webkit-fill-available;
 }
 
 body {
-    height: 100vh;
-    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* Важно: позволяет странице растягиваться */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
 }
 
 /* Резервный отступ на случай если JS не сработал */
 #sendInput:focus {
-    scroll-margin-bottom: 40vh;
-}
-
-/* На мобильных панель ввода чуть приподнята */
-@media (max-width: 600px) {
-    .send-panel {
-        position: relative;
-        z-index: 10;
-    }
+    scroll-margin-bottom: 60vh;
 }
 
 /* Toolbar */
@@ -529,10 +531,12 @@ body {
     opacity: 0.7;
 }
 
-/* Responsive */
+//* Responsive */
 @media (max-width: 600px) {
     .container {
         padding: 10px;
+        /* Даём контейнеру дополнительный отступ снизу под клавиатуру */
+        padding-bottom: env(keyboard-inset-height, 50vh);
     }
 
     header {
@@ -561,5 +565,21 @@ body {
 
     .button-group {
         flex-direction: column;
+    }
+    
+    /* На мобильных панель ввода прилипает к верху клавиатуры */
+    .send-panel {
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+        background: var(--bg-panel);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        border-radius: var(--radius) var(--radius) 0 0;
+        margin-bottom: 0;
+    }
+    
+    /* История становится меньше на мобильных */
+    .history-container {
+        max-height: 200px;
     }
 }

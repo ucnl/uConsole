@@ -147,60 +147,77 @@ class UConsole {
 		});
 
 		// ================= Фикс клавиатуры на мобильных =================
-		if (window.visualViewport) {
+		const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+
+		if (isMobile) {
 			const sendInput = document.getElementById('sendInput');
-			const historyContainer = document.getElementById('historyContainer');
 			const sendPanel = document.querySelector('.send-panel');
-			let originalHistoryHeight = null;
+			const historyContainer = document.getElementById('historyContainer');
+			let originalHistoryHeight = historyContainer.style.maxHeight || '400px';
+			let lastScrollY = 0;
 			
-			const adjustForKeyboard = () => {
-				const viewport = window.visualViewport;
-				const keyboardHeight = window.innerHeight - viewport.height;
-				const inputFocused = document.activeElement === sendInput;
+			// При фокусе на поле ввода
+			sendInput.addEventListener('focus', () => {
+				lastScrollY = window.scrollY;
 				
-				if (keyboardHeight > 100 && inputFocused) {
-					// Сохраняем изначальную высоту истории
-					if (!originalHistoryHeight) {
-						originalHistoryHeight = historyContainer.style.maxHeight || '400px';
-					}
+				// Уменьшаем историю до минимума
+				historyContainer.style.maxHeight = '120px';
+				historyContainer.style.transition = 'max-height 0.3s ease-out';
+				
+				// Ждём открытия клавиатуры (разные задержки для разных устройств)
+				setTimeout(() => {
+					// Прокручиваем так, чтобы панель отправки была в самом верху видимой области
+					sendPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 					
-					// Уменьшаем историю, освобождая место
-					const availableHeight = viewport.height - sendPanel.offsetHeight - 120;
-					historyContainer.style.maxHeight = `${Math.max(150, availableHeight)}px`;
-					historyContainer.style.transition = 'max-height 0.2s ease-out';
-					
-					// Прокручиваем к полю ввода
+					// Дополнительная подстраховка через requestAnimationFrame
 					requestAnimationFrame(() => {
-						const inputRect = sendInput.getBoundingClientRect();
-						if (inputRect.bottom > viewport.height - 20) {
-							sendInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+						const panelRect = sendPanel.getBoundingClientRect();
+						const windowHeight = window.innerHeight;
+						
+						// Если панель всё ещё ниже видимой области
+						if (panelRect.top > windowHeight * 0.3) {
+							window.scrollBy({
+								top: panelRect.top - 60,
+								behavior: 'smooth'
+							});
 						}
 					});
-				} else if (!inputFocused && keyboardHeight < 50) {
-					// Клавиатура закрыта — возвращаем как было
-					historyContainer.style.maxHeight = originalHistoryHeight || '';
-					originalHistoryHeight = null;
-				}
-			};
-			
-			window.visualViewport.addEventListener('resize', adjustForKeyboard);
-			window.visualViewport.addEventListener('scroll', adjustForKeyboard);
-			
-			// Фокус — сразу адаптируем
-			sendInput.addEventListener('focus', () => {
-				setTimeout(adjustForKeyboard, 250); // Ждём открытия клавиатуры
+				}, 350); // Увеличил задержку для Huawei
 			});
 			
-			// Потеря фокуса — возвращаем через задержку
+			// При потере фокуса — возвращаем всё обратно
 			sendInput.addEventListener('blur', () => {
 				setTimeout(() => {
-					if (document.activeElement !== sendInput) {
-						historyContainer.style.maxHeight = originalHistoryHeight || '';
-						historyContainer.style.transition = 'max-height 0.3s ease-out';
-						originalHistoryHeight = null;
-						window.scrollTo({ top: 0, behavior: 'smooth' });
-					}
+					historyContainer.style.maxHeight = originalHistoryHeight;
+					historyContainer.style.transition = 'max-height 0.3s ease-out';
+					window.scrollTo({ top: 0, behavior: 'smooth' });
 				}, 500);
+			});
+			
+			// Отслеживаем изменение размера окна (резервный метод)
+			let lastHeight = window.innerHeight;
+			window.addEventListener('resize', () => {
+				const currentHeight = window.innerHeight;
+				const heightDiff = lastHeight - currentHeight;
+				
+				// Если высота уменьшилась более чем на 150px — скорее всего открылась клавиатура
+				if (heightDiff > 150 && document.activeElement === sendInput) {
+					historyContainer.style.maxHeight = '120px';
+					
+					requestAnimationFrame(() => {
+						sendPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					});
+				} else if (heightDiff < -100) {
+					// Клавиатура закрылась
+					setTimeout(() => {
+						if (document.activeElement !== sendInput) {
+							historyContainer.style.maxHeight = originalHistoryHeight;
+							window.scrollTo({ top: 0, behavior: 'smooth' });
+						}
+					}, 300);
+				}
+				
+				lastHeight = currentHeight;
 			});
 		}
 
