@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>uConsole</title>
     <link rel="stylesheet" href="style.css">
+	<link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="container">
@@ -178,5 +179,16 @@
     <script src="i18n.js"></script>
     <!-- App -->
     <script src="app.js"></script>
+	
+	<script>
+	if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+	  window.addEventListener('load', () => {
+		navigator.serviceWorker.register('sw.js')
+		  .then((reg) => console.log('[SW] Зарегистрирован:', reg.scope))
+		  .catch((err) => console.warn('[SW] Ошибка:', err));
+	  });
+	}
+	</script>
+	
 </body>
 </html>
