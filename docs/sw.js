@@ -1,9 +1,9 @@
-const CACHE = 'aws-v2';
+const CACHE = 'aws-v3';
 
 const ASSETS = [
   './',
   './index.html',
-  './styles.css',
+  './style.css',
   './app.js',
   './serial-core.js',
   './i18n.js',
