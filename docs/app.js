@@ -10,6 +10,11 @@ class UConsole {
         this.maxHistoryEntries = 500;
         this.hexBytesPerLine = 16;
 
+		// === Timer ===
+		this.timerId = null;
+		this.timerCount = 0;
+		this.timerStartTime = null;
+
         this._wireSerialEvents();
         this._initAllListeners();
         this._initKeyboardShortcuts();
@@ -29,10 +34,11 @@ class UConsole {
         };
 
         this.serial.onClose = () => {
-            this.isConnected = false;
-            this._updateUIState(false);
-            this.addSystemMessage(I18n.translate('log_disconnected'));
-        };
+			this.isConnected = false;
+			if (this.timerId) this._stopTimer();
+			this._updateUIState(false);
+			this.addSystemMessage(I18n.translate('log_disconnected'));
+		};
     }
 
     // ==================== Init Listeners ====================
@@ -307,9 +313,193 @@ class UConsole {
 			I18n.setLanguage(e.target.value);
 			this._updateConnectionStatus();
 		});
+		
+		this._initTimerListeners();
 
 		// Refresh ports on first load
 		this._refreshPorts();
+	}
+	
+	// ==================== Periodic Timer ====================
+
+	_initTimerListeners() {
+		const btnStart = document.getElementById('btnTimerStart');
+		const btnStop = document.getElementById('btnTimerStop');
+		const intervalInput = document.getElementById('timerInterval');
+
+		btnStart.addEventListener('click', () => this._startTimer());
+		btnStop.addEventListener('click', () => this._stopTimer());
+
+		// Валидация интервала в реальном времени
+		intervalInput.addEventListener('input', () => {
+			const val = parseInt(intervalInput.value);
+			if (isNaN(val) || val < 50) {
+				intervalInput.classList.add('invalid');
+			} else {
+				intervalInput.classList.remove('invalid');
+			}
+		});
+
+		// Enter в поле данных запускает таймер
+		document.getElementById('timerData').addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				if (this.timerId) {
+					this._stopTimer();
+				} else {
+					this._startTimer();
+				}
+			}
+		});
+	}
+
+	_startTimer() {
+		if (this.timerId) return;
+
+		if (!this.isConnected) {
+			this.addSystemMessage(I18n.translate('timer_not_connected'), 'error');
+			return;
+		}
+
+		const data = document.getElementById('timerData').value;
+		if (!data.trim()) {
+			this.addSystemMessage(I18n.translate('timer_no_data'), 'error');
+			return;
+		}
+
+		const interval = parseInt(document.getElementById('timerInterval').value);
+		if (isNaN(interval) || interval < 50) {
+			this.addSystemMessage(I18n.translate('timer_invalid_interval'), 'error');
+			return;
+		}
+
+		// === Собираем суффикс один раз ===
+		const suffix = this._buildTimerSuffix();
+
+		this.timerCount = 0;
+		this.timerStartTime = Date.now();
+
+		// Первая отправка сразу
+		this._timerTick(data, suffix);
+
+		// Запускаем интервал
+		this.timerId = setInterval(() => {
+			this._timerTick(data, suffix);
+		}, interval);
+
+		// UI
+		document.getElementById('btnTimerStart').disabled = true;
+		document.getElementById('btnTimerStop').disabled = false;
+		document.querySelector('.timer-panel').classList.add('active');
+		this._updateTimerStatus(true);
+
+		const msg = I18n.translate('timer_log_started').replace('{ms}', interval);
+		this.addSystemMessage(msg);
+	}
+
+	_buildTimerSuffix() {
+		const appendCRLF = document.getElementById('timerAppendCRLF').checked;
+		const appendCR = document.getElementById('timerAppendCR').checked;
+		const appendLF = document.getElementById('timerAppendLF').checked;
+
+		if (appendCRLF) return '\r\n';
+		if (appendCR && appendLF) return '\r\n';
+		if (appendCR) return '\r';
+		if (appendLF) return '\n';
+		return '';
+	}
+
+	async _timerTick(data, suffix) {
+		if (!this.isConnected) {
+			this._stopTimer();
+			return;
+		}
+
+		try {
+			const payload = data + suffix;
+			const isHex = /^[0-9A-Fa-f\s]+$/.test(data) &&
+						  data.replace(/\s/g, '').length % 2 === 0 &&
+						  suffix === '';
+
+			let bytes;
+			if (isHex) {
+				const cleaned = data.replace(/\s/g, '');
+				bytes = new Uint8Array(cleaned.length / 2);
+				for (let i = 0; i < cleaned.length; i += 2) {
+					bytes[i / 2] = parseInt(cleaned.substring(i, i + 2), 16);
+				}
+			} else {
+				// Если есть суффикс — шлём как текст
+				const enc = new TextEncoder();
+				if (suffix) {
+					bytes = enc.encode(payload);
+				} else if (/^[0-9A-Fa-f\s]+$/.test(data) &&
+						   data.replace(/\s/g, '').length % 2 === 0) {
+					// HEX без суффикса
+					const cleaned = data.replace(/\s/g, '');
+					bytes = new Uint8Array(cleaned.length / 2);
+					for (let i = 0; i < cleaned.length; i += 2) {
+						bytes[i / 2] = parseInt(cleaned.substring(i, i + 2), 16);
+					}
+				} else {
+					bytes = enc.encode(data);
+				}
+			}
+
+			await this.serial.send(bytes);
+			this.timerCount++;
+
+			// Показываем в истории только каждую N-ю или первые несколько
+			if (this.timerCount <= 3 || this.timerCount % 10 === 0) {
+				const display = suffix
+					? data + (suffix === '\r\n' ? '<CRLF>'
+						   : suffix === '\r'   ? '<CR>'
+						   :                     '<LF>')
+					: data;
+				const label = I18n.translate('timer_log_sent').replace('{n}', this.timerCount);
+				this._addHistoryEntry(`${display}  [${label}]`, 'tx');
+			}
+
+			// Обновляем счётчик
+			const elapsed = ((Date.now() - this.timerStartTime) / 1000).toFixed(1);
+			document.getElementById('timerCounter').textContent =
+				`#${this.timerCount} • ${elapsed}s`;
+		} catch (err) {
+			this.addSystemMessage(`${I18n.translate('log_error')} ${err.message}`, 'error');
+			this._stopTimer();
+		}
+	}
+
+	_stopTimer() {
+		if (!this.timerId) return;
+
+		clearInterval(this.timerId);
+		this.timerId = null;
+
+		const count = this.timerCount;
+		this.timerCount = 0;
+		this.timerStartTime = null;
+
+		// UI
+		document.getElementById('btnTimerStart').disabled = false;
+		document.getElementById('btnTimerStop').disabled = true;
+		document.querySelector('.timer-panel').classList.remove('active');
+		this._updateTimerStatus(false);
+		document.getElementById('timerCounter').textContent = '—';
+
+		const msg = I18n.translate('timer_log_stopped').replace('{count}', count);
+		this.addSystemMessage(msg);
+	}
+
+	_updateTimerStatus(running) {
+		const badge = document.getElementById('timerStatusBadge');
+		if (running) {
+			badge.className = 'status-badge running';
+			badge.textContent = I18n.translate('timer_running');
+		} else {
+			badge.className = 'status-badge disconnected';
+			badge.textContent = I18n.translate('timer_idle');
+		}
 	}
 
 
@@ -763,6 +953,18 @@ class UConsole {
             btnRecord.disabled = true;
             generateSendBtns.forEach(b => b.disabled = true);
         }
+
+		// === Timer: стопаем и блокируем при отключении ===
+		const btnTimerStart = document.getElementById('btnTimerStart');
+		const btnTimerStop = document.getElementById('btnTimerStop');
+
+		if (connected) {
+			btnTimerStart.disabled = false;
+		} else {
+			if (this.timerId) this._stopTimer();
+			btnTimerStart.disabled = true;
+			btnTimerStop.disabled = true;
+		}
 
         btnConnect.disabled = false;
         this._updateConnectionStatus();

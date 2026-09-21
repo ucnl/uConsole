@@ -546,3 +546,41 @@ select.form-control {
     .button-group {
         flex-direction: column;
     }
+	
+	/* Timer panel */
+.timer-panel {
+    border-left: 4px solid #ff9800;
+}
+
+.timer-panel.active {
+    border-left-color: #4caf50;
+    background: rgba(76, 175, 80, 0.05);
+}
+
+#timerStatusBadge.running {
+    background: #4caf50;
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+#timerStatusBadge.disconnected {
+    background: #9e9e9e;
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+#timerCounter {
+    font-family: monospace;
+    color: #666;
+    font-size: 12px;
+}
+
+/* Визуальный индикатор для невалидного интервала */
+#timerInterval.invalid {
+    border-color: #f44336;
+    background: #ffebee;
+}

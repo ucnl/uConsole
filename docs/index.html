@@ -122,6 +122,52 @@
             </section>
         </main>
 		
+		<!-- Timer Panel -->
+		<section class="panel timer-panel">
+			<h2 data-i18n="timer_title">⏱ Periodic Send</h2>
+			<div class="form-row">
+				<div class="form-group" style="flex: 2;">
+					<label for="timerData" data-i18n="timer_data">Data to send periodically</label>
+					<input type="text" id="timerData" class="form-control mono"
+						   placeholder="Type here..." data-i18n-placeholder="type_here"
+						   autocomplete="off">
+				</div>
+				<div class="form-group" style="flex: 1;">
+					<label for="timerInterval" data-i18n="timer_interval">Interval (ms)</label>
+					<input type="number" id="timerInterval" class="form-control"
+						   value="1000" min="50" max="3600000" step="50">
+				</div>
+				<div class="form-group" style="flex: 0; display: flex; align-items: flex-end; gap: 8px;">
+					<button type="button" id="btnTimerStart" class="btn btn-primary"
+							data-i18n="timer_start">▶ Start</button>
+					<button type="button" id="btnTimerStop" class="btn btn-secondary"
+							data-i18n="timer_stop" disabled>⏹ Stop</button>
+				</div>
+			</div>
+			<div class="toolbar">
+				<div class="toolbar-group">
+					<label class="checkbox-label">
+						<input type="checkbox" id="timerAppendCRLF" checked>
+						<span data-i18n="timer_append_crlf">Append CRLF</span>
+					</label>
+					<label class="checkbox-label">
+						<input type="checkbox" id="timerAppendCR">
+						<span data-i18n="timer_append_cr">Append CR</span>
+					</label>
+					<label class="checkbox-label">
+						<input type="checkbox" id="timerAppendLF">
+						<span data-i18n="timer_append_lf">Append LF</span>
+					</label>
+				</div>
+				<div class="toolbar-group">
+					<span class="toolbar-label" data-i18n="timer_status">Status:</span>
+					<span id="timerStatusBadge" class="status-badge disconnected"
+						  data-i18n="timer_idle">Idle</span>
+					<span id="timerCounter" class="toolbar-label">—</span>
+				</div>
+			</div>
+		</section>
+		
 		<!-- Display Mode & Controls -->
             <section class="panel display-panel">
                 <h2 data-i18n="history_title">History</h2>
