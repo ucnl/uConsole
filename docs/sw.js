@@ -1,4 +1,4 @@
-const CACHE = 'aws-v3';
+const CACHE = 'aws-v4';
 
 const ASSETS = [
   './',
@@ -7,6 +7,7 @@ const ASSETS = [
   './app.js',
   './serial-core.js',
   './i18n.js',
+  './manifest.json',
 ];
 
 self.addEventListener('install', (event) => {
