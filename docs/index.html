@@ -56,8 +56,8 @@
                 </div>
             </section>
 
-            <!-- Send Panel -->
-            <section class="panel send-panel">
+        <!-- Send Panel -->
+        <section class="panel send-panel">
                 <h2 data-i18n="send_title">Send</h2>
                 <div class="form-row">
                     <div class="form-group" style="flex: 1;">
@@ -135,7 +135,7 @@
 				<div class="form-group" style="flex: 1;">
 					<label for="timerInterval" data-i18n="timer_interval">Interval (ms)</label>
 					<input type="number" id="timerInterval" class="form-control"
-						   value="1000" min="50" max="3600000" step="50">
+						   value="3000" min="50" max="3600000" step="50">
 				</div>
 				<div class="form-group" style="flex: 0; display: flex; align-items: flex-end; gap: 8px;">
 					<button type="button" id="btnTimerStart" class="btn btn-primary"
@@ -169,7 +169,7 @@
 		</section>
 		
 		<!-- Display Mode & Controls -->
-            <section class="panel display-panel">
+        <section class="panel display-panel">
                 <h2 data-i18n="history_title">History</h2>
                 <div class="toolbar">
                     <div class="toolbar-group">
@@ -198,6 +198,12 @@
                         <button type="button" id="btnClear" class="btn btn-small btn-secondary" data-i18n="clear" title="Clear history (Ctrl+X)">🗑 Clear</button>
                         <button type="button" id="btnSaveText" class="btn btn-small btn-secondary" data-i18n="save_text" title="Save history as text (Ctrl+S)">💾 Save</button>
                     </div>
+					<div class="toolbar-group">
+						<button type="button" id="btnJumpToBottom"
+								class="btn btn-small btn-secondary"
+								style="display:none;"
+								title="Jump to latest">↓ К последним</button>
+					</div>
                 </div>
                 <div id="historyContainer" class="history-container">
                     <div class="log-entry info">uConsole ready...</div>

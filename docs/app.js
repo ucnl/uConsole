@@ -7,8 +7,12 @@ class UConsole {
         this.isPingPong = false;
         this.isRecording = false;
         this.recordBuffer = [];
-        this.maxHistoryEntries = 500;
+        this.maxHistoryEntries = 300;
         this.hexBytesPerLine = 16;
+		
+		// === History autoscroll ===
+		this._stickToBottom = true;     // "прилипание" к низу
+		this._logMouseDown = false;     // true пока пользователь выделяет текст мышью
 
 		// === Timer ===
 		this.timerId = null;
@@ -60,6 +64,37 @@ class UConsole {
 				this._sendCRLF();
 			}
 		});
+		
+		
+		// ================= Умная автопрокрутка истории =================
+		const historyContainer = document.getElementById('historyContainer');
+		const STICK_THRESHOLD = 40; // px от нижнего края
+
+		historyContainer.addEventListener('scroll', () => {
+			const dist = historyContainer.scrollHeight
+					   - historyContainer.scrollTop
+					   - historyContainer.clientHeight;
+			this._stickToBottom = dist < STICK_THRESHOLD;
+			this._updateJumpButton();
+		});
+
+		// Не дёргать скролл, пока пользователь выделяет текст мышью
+		historyContainer.addEventListener('mousedown', () => {
+			this._logMouseDown = true;
+		});
+		document.addEventListener('mouseup', () => {
+			this._logMouseDown = false;
+		});
+
+		// Кнопка "↓ К последним"
+		const jumpBtn = document.getElementById('btnJumpToBottom');
+		if (jumpBtn) {
+			jumpBtn.addEventListener('click', () => {
+				this._stickToBottom = true;
+				this._scrollToBottom();
+				this._updateJumpButton();
+			});
+		}
 
 		// CR, LF, CRLF
 		document.getElementById('btnCR').addEventListener('click', () => this._sendControl(0x0D, '<CR>'));
@@ -155,7 +190,6 @@ class UConsole {
 		// ================= Фикс клавиатуры на мобильных =================
 		const sendInput = document.getElementById('sendInput');
 		const sendPanel = document.querySelector('.send-panel');
-		const historyContainer = document.getElementById('historyContainer');
 		const container = document.querySelector('.container');
 
 		// Сохраняем оригинальные стили панели
@@ -523,49 +557,41 @@ class UConsole {
 
     // ==================== Keyboard Shortcuts ====================
 
-    _initKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            const inputFocused = document.activeElement === document.getElementById('sendInput');
-            
-            if (e.ctrlKey) {
-                switch (e.key.toLowerCase()) {
-                    case 'l':
-                        e.preventDefault();
-                        this._toggleConnection();
-                        break;
-                    case 'r':
-                        e.preventDefault();
-                        this._refreshPorts();
-                        break;
-                    case 's':
-                        e.preventDefault();
-                        this._saveHistoryText();
-                        break;
-                    case 'c':
-                        if (!inputFocused) {
-                            e.preventDefault();
-                            this._copyHistory();
-                        }
-                        break;
-                    case 'x':
-                        e.preventDefault();
-                        this._clearHistory();
-                        break;
-                    case 'n':
-                        e.preventDefault();
-                        this._addNMEAChecksum();
-                        break;
-                }
-            }
+	_initKeyboardShortcuts() {
+		document.addEventListener('keydown', (e) => {
+			const t = e.target;
+			const tag = (t.tagName || '').toLowerCase();
+			const isEditable =
+				tag === 'input' || tag === 'textarea' || tag === 'select' ||
+				t.isContentEditable;
 
-            // Any key focuses the input if not already focused
-            if (!e.ctrlKey && !e.altKey && !e.metaKey && !inputFocused) {
-                if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
-                    document.getElementById('sendInput').focus();
-                }
-            }
-        });
-    }
+			// Если пользователь что-то печатает в любом поле — не трогаем
+			if (isEditable) return;
+
+			const inputFocused = document.activeElement === document.getElementById('sendInput');
+
+			if (e.ctrlKey) {
+				switch (e.key.toLowerCase()) {
+					case 'l': e.preventDefault(); this._toggleConnection(); break;
+					case 'r': e.preventDefault(); this._refreshPorts(); break;
+					case 's': e.preventDefault(); this._saveHistoryText(); break;
+					case 'c':
+						if (!inputFocused) { e.preventDefault(); this._copyHistory(); }
+						break;
+					case 'x': e.preventDefault(); this._clearHistory(); break;
+					case 'n': e.preventDefault(); this._addNMEAChecksum(); break;
+				}
+				return;
+			}
+
+			// Автофокус на sendInput — только когда фокус нигде не в поле ввода
+			if (!e.altKey && !e.metaKey) {
+				if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+					document.getElementById('sendInput').focus();
+				}
+			}
+		});
+	}
 
     // ==================== Connection ====================
 
@@ -760,37 +786,43 @@ class UConsole {
 
     // ==================== History ====================
 
-    _addHistoryEntry(text, type) {
-        const container = document.getElementById('historyContainer');
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`;
+	_addEntry(text, type) {
+		const container = document.getElementById('historyContainer');
+		const entry = document.createElement('div');
+		entry.className = `log-entry ${type}`;
+		entry.textContent = text;
+		container.appendChild(entry);
 
-        const now = new Date();
-        const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
-        entry.textContent = `${timestamp} ${text}`;
+		// Обрезка с запасом
+		if (container.children.length > this.maxHistoryEntries + 20) {
+			const toRemove = container.children.length - this.maxHistoryEntries;
+			for (let i = 0; i < toRemove; i++) {
+				container.removeChild(container.firstChild);
+			}
+		}
 
-        container.appendChild(entry);
+		if (document.getElementById('autoscrollCb').checked
+			&& this._stickToBottom
+			&& !this._logMouseDown) {
+			this._scrollToBottom();
+		}
+	}
 
-        while (container.children.length > this.maxHistoryEntries) {
-            container.removeChild(container.firstChild);
-        }
+	_addHistoryEntry(text, type) {
+		const now = new Date();
+		const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+		this._addEntry(`${timestamp} ${text}`, type);
+	}
 
-        if (document.getElementById('autoscrollCb').checked) {
-            this._scrollToBottom();
-        }
-    }
-
-    addSystemMessage(msg, type = 'system') {
-        const container = document.getElementById('historyContainer');
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`;
-        entry.textContent = `--- ${msg}`;
-        container.appendChild(entry);
-
-        if (document.getElementById('autoscrollCb').checked) {
-            this._scrollToBottom();
-        }
-    }
+	addSystemMessage(msg, type = 'system') {
+		this._addEntry(`--- ${msg}`, type);
+	}
+	
+	_updateJumpButton() {
+		const btn = document.getElementById('btnJumpToBottom');
+		if (!btn) return;
+		btn.style.display = this._stickToBottom ? 'none' : 'inline-block';
+	}
 
     _scrollToBottom() {
         const container = document.getElementById('historyContainer');
